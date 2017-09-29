@@ -1,0 +1,27 @@
+pre {
+  margin-top: 10px;
+}
+
+table {
+  margin-top: 10px;
+}
+
+.string {
+  color: #008000;
+}
+
+.number {
+  color: #0000ff;
+}
+
+.boolean {
+  color: #b22222;
+}
+
+.null {
+  color: #808080;
+}
+
+.key {
+  color: #000000;
+}
