@@ -23,7 +23,7 @@ let jsonDisplay = {
 
   syntaxHighlight: function (json) {
 
-    if (typeof json != 'string') {
+    if (typeof json !== 'string') {
       json = JSON.stringify(json, undefined, 2);
     }
 
@@ -53,7 +53,7 @@ let VotingContract = web3.eth.contract(abi);
 
 // In your nodejs console, execute contractInstance.address to get the address at which the contract is deployed 
 // and change the line below to use your deployed address
-let contractInstance = VotingContract.at('0x497af6790af59aee7fee8574943963081096106a');
+let contractInstance = VotingContract.at('0xa2150434e3c97664b1f7812546e112f3a2b45639');
 let candidates = { 'Rama': 'candidate-1', 'Nick': 'candidate-2', 'Jose': 'candidate-3' };
 
 function voteForCandidate() {
@@ -70,10 +70,12 @@ function showBlocks() {
   let blocksToShow = $('#blocksToShow').val();
   for (var i = 0; i < blocksToShow; i++) {
     let block = web3.eth.getBlock(web3.eth.blockNumber - i);
-    console.log(block);
+    if (block !== null) {
+      console.log(block);
 
-    jsonDisplay.outputDivID = 'blocks';
-    jsonDisplay.outputPretty(JSON.stringify(block));
+      jsonDisplay.outputDivID = 'blocks';
+      jsonDisplay.outputPretty(JSON.stringify(block));
+    }
   }
 }
 
