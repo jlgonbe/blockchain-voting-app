@@ -1,0 +1,16 @@
+{
+    "esversion":6,
+    "curly" : true,
+    "eqeqeq" : true, 
+    "noempty" : true, 
+    "quotmark" : "single",
+    "strict" : true,
+    "globals": {
+        "$": false,
+        "document": false,
+        "console": false,
+        "Web3": false,
+        "require": false,
+        "setTimeout": false
+    }
+}
