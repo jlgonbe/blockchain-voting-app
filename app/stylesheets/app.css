@@ -1,0 +1,34 @@
+body {
+  margin-top: 4%;
+}
+
+h1 {
+  display: inline-block;
+  vertical-align: middle;
+  margin-top: 0px;
+  margin-bottom: 10px;
+}
+
+table, #blocks {
+  margin-top: 2%;
+}
+
+.string {
+  color: #008000;
+}
+
+.number {
+  color: #0000ff;
+}
+
+.boolean {
+  color: #b22222;
+}
+
+.null {
+  color: #808080;
+}
+
+.key {
+  color: #000000;
+}
