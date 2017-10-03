@@ -12,6 +12,6 @@ module.exports = function(deployer) {
   
   deployer.deploy(Voting, 
     employees, 
-    { gas: 290000 }
+    { gas: 700000 }
   );
 };

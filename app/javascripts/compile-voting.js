@@ -11,7 +11,7 @@ let web3 = new Web3();
 web3.setProvider(new web3.providers.HttpProvider('http://localhost:8545'));
 
 // Read the compiled contract code
-let source = fs.readFileSync('contract/Voting.sol').toString();
+let source = fs.readFileSync('../../contracts/Voting.sol').toString();
 
 // ABI description as JSON structure
 let compiledSource = solc.compile(source, 1);
