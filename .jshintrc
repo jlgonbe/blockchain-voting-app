@@ -10,7 +10,11 @@
         "document": false,
         "console": false,
         "Web3": false,
+        "web3": false,
         "require": false,
-        "setTimeout": false
+        "setTimeout": false,
+        "module": false,
+        "artifacts": false,
+        "window": false
     }
 }
