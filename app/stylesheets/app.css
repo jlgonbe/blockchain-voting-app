@@ -13,6 +13,10 @@ table, #blocks {
   margin-top: 2%;
 }
 
+#password { 
+  width: 300px;
+}
+
 .string {
   color: #008000;
 }
