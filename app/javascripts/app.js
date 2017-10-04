@@ -64,8 +64,10 @@ import { default as contract } from 'truffle-contract';
  */
 
 import voting_artifacts from '../../build/contracts/Voting.json';
+import token from '../../build/contracts/Takertest.json';
 
 var Voting = contract(voting_artifacts);
+var Token = contract(token);
 
 let candidates = {
   'Hector Garzon': 'candidate-1', 
@@ -96,21 +98,37 @@ window.voteForCandidate = function(candidate) {
   try {
     $('#msg').html('Vote has been submitted. The vote count will increment as soon as the vote is recorded on the blockchain. Please wait.');
     $('#candidate').val('');
-
     /* Voting.deployed() returns an instance of the contract. Every call
      * in Truffle returns a promise which is why we have used then()
      * everywhere we have a transaction call
      */
+     
     Voting.deployed().then(function(contractInstance) {
       contractInstance.voteForCandidate(candidateName, {gas: 140000, from: web3.eth.accounts[0]}).then(function() {
         let div_id = candidates[candidateName];
         return contractInstance.totalVotesFor.call(candidateName).then(function(v) {
           $('#' + div_id).html(v.toString());
-          $('#msg').html('');
+          $('#msg').html('Vote done, transfering some Tokens..');
+
+          //Send Token to specific address 
+          Token.deployed().then(function(token) {
+            var receiver = '0x1bcEc5795907D16082AcB2F401fF752A720be390';
+            var amount = web3.toWei(0.001, "ether");
+            token.transfer(receiver, amount).then(function(a){
+                token.balanceOf(receiver).then(function(value){
+                  $('#' + div_id).html(v.toString());
+                  var newBalance=web3.fromWei(value,"ether");
+                  $('#msg').html('Tokens given. New balance: ' + newBalance);
+                  console.log("new balance: " + newBalance);
+                });
+            });  
+          })
         });
       });
     });
   } catch (err) {
+    $('#' + div_id).html(v.toString());
+    $('#msg').html('Something was wrong...');
     console.log(err);
   }
 };
@@ -126,6 +144,9 @@ $( document ).ready(function() {
     window.web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
   }
 
+  Token.setProvider(web3.currentProvider);
+  Token.defaults({from: web3.eth.accounts[0]});
+  
   Voting.setProvider(web3.currentProvider);
   let candidateNames = Object.keys(candidates);
   for (var i = 0; i < candidateNames.length; i++) {
