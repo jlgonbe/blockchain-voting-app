@@ -3,55 +3,11 @@
 // Import the page's CSS. Webpack will know what to do with it.
 import '../stylesheets/app.css';
 
-/**
-* Hat tip to PumBaa80 http://stackoverflow.com/questions/4810841/json-pretty-print-using-javascript 
-* for the syntax highlighting function.
-**/
-let jsonDisplay = {
-
-  jsonstring: '',
-  outputDivID: 'shpretty',
-
-  outputPretty: function (jsonstring) {
-    jsonstring = jsonstring === '' ? jsonDisplay.jsonstring : jsonstring;
-    // prettify spacing
-    var pretty = JSON.stringify(JSON.parse(jsonstring), null, 2);
-    // syntaxhighlight the pretty print version
-    let shpretty = jsonDisplay.syntaxHighlight(pretty);
-    // output to a div
-    let newDiv = document.createElement('pre');
-    newDiv.innerHTML = shpretty;
-    document.getElementById(jsonDisplay.outputDivID).appendChild(newDiv);
-  },
-
-  syntaxHighlight: function (json) {
-
-    if (typeof json !== 'string') {
-      json = JSON.stringify(json, undefined, 2);
-    }
-
-    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-      var cls = 'number';
-      if (/^"/.test(match)) {
-        if (/:$/.test(match)) {
-          cls = 'key';
-        } else {
-          cls = 'string';
-        }
-      } else if (/true|false/.test(match)) {
-        cls = 'boolean';
-      } else if (/null/.test(match)) {
-        cls = 'null';
-      }
-      return '<span class="' + cls + '">' + match + '</span>';
-    });
-  }
-};
-
 // Import libraries we need.
-import { default as Web3} from 'web3';
+import { default as Web3 } from 'web3';
 import { default as contract } from 'truffle-contract';
+import { jsonDisplay } from './syntax-highlighting';
+import { addAlert } from './html-generator';
 
 /*
  * When you compile and deploy your Voting contract,
@@ -62,7 +18,6 @@ import { default as contract } from 'truffle-contract';
  * Compare this against the index.js from our previous tutorial to see the difference
  * https://gist.github.com/maheshmurthy/f6e96d6b3fff4cd4fa7f892de8a1a1b4#file-index-js
  */
-
 import voting_artifacts from '../../build/contracts/Voting.json';
 
 var Voting = contract(voting_artifacts);
@@ -76,7 +31,7 @@ let candidates = {
   'Alejandro Moros': 'candidate-6'
 };
 
-window.showBlocks = function () {
+window.showBlocks = () => {
   $('#blocks').html('');
 
   let blocksToShow = $('#blocksToShow').val();
@@ -91,27 +46,56 @@ window.showBlocks = function () {
   }
 };
 
-window.voteForCandidate = function(candidate) {
+window.voteForCandidate = (candidate) => {
   let candidateName = $('#candidate').val();
-  try {
-    $('#msg').html('Vote has been submitted. The vote count will increment as soon as the vote is recorded on the blockchain. Please wait.');
-    $('#candidate').val('');
+  $('#candidate').val('');
 
-    /* Voting.deployed() returns an instance of the contract. Every call
-     * in Truffle returns a promise which is why we have used then()
-     * everywhere we have a transaction call
-     */
-    Voting.deployed().then(function(contractInstance) {
-      contractInstance.voteForCandidate(candidateName, {gas: 140000, from: web3.eth.accounts[0]}).then(function() {
-        let div_id = candidates[candidateName];
-        return contractInstance.totalVotesFor.call(candidateName).then(function(v) {
-          $('#' + div_id).html(v.toString());
-          $('#msg').html('');
-        });
+  /* Voting.deployed() returns an instance of the contract. Every call
+   * in Truffle returns a promise which is why we have used then()
+   * everywhere we have a transaction call
+   */
+  Voting.deployed().then((contractInstance) => {
+    $('#messages').append(addAlert('info', 'Vote has been submitted. The vote count will increment as soon as the vote is recorded on the blockchain. Please wait.'));
+
+    contractInstance.voteForCandidate(candidateName, { gas: 140000, from: web3.eth.accounts[0] }).then(() => {
+      let div_id = candidates[candidateName];
+      return contractInstance.totalVotesFor.call(candidateName).then((v) => {
+        $('#' + div_id).html(v.toString());
+        $('#messages').html('');
       });
+    }).catch((err) => {
+      $('#messages').html('');
+      $('#messages').append(addAlert('danger', 'Error voting for candidate: ' + err.message));
     });
+  });
+};
+
+window.unlockAccount = () => {
+  let account = web3.eth.accounts[0];
+  let password = $('#password').val();
+  $('#password').val('');
+  $('#messages').html('');
+  
+  try {
+    web3.personal.unlockAccount(account, password, 0);
+    $('#messages').append(addAlert('success', 'Account ' + account + ' unlocked!'));
   } catch (err) {
-    console.log(err);
+    $('#messages').append(addAlert('danger', 'Error unlocking account: ' + account + ', error: ' + err.message + ''));
+  }
+};
+
+window.createAccount = () => {
+  let password = $('#password').val();
+  $('#password').val('');
+  $('#messages').html('');
+
+  try {
+    let account = web3.personal.newAccount(password);
+    $('#messages').append(addAlert('success', 'Account ' + account + ' created!'));
+    $('#unlockAccount').show();
+    $('#createAccount').hide();
+  } catch (err) {
+    $('#messages').append(addAlert('danger', 'Error creating account:' + err.message + ''));
   }
 };
 
@@ -124,6 +108,14 @@ $( document ).ready(function() {
     console.warn('No web3 detected. Falling back to http://localhost:8545. You should remove this fallback when you deploy live, as it\'s inherently insecure. Consider switching to Metamask for development. More info here: http://truffleframework.com/tutorials/truffle-and-metamask');
     // fallback - use your fallback strategy (local node / hosted node + in-dapp id mgmt / fail)
     window.web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
+  }
+
+  if (web3.eth.accounts[0]) {
+    $('#unlockAccount').show();
+    $('#createAccount').hide();
+  } else {
+    $('#createAccount').show();
+    $('#unlockAccount').hide();
   }
 
   Voting.setProvider(web3.currentProvider);
