@@ -77,7 +77,7 @@ window.unlockAccount = () => {
   $('#messages').html('');
   
   try {
-    web3.personal.unlockAccount(account, password);
+    web3.personal.unlockAccount(account, password, 0);
     $('#messages').append(addAlert('success', 'Account ' + account + ' unlocked!'));
   } catch (err) {
     $('#messages').append(addAlert('danger', 'Error unlocking account: ' + account + ', error: ' + err.message + ''));
